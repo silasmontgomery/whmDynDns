@@ -5,6 +5,11 @@ records for pointing subdomains to a server with a dynamic IP address. It can be
 based on your configuration will add/update A records when your public IP address changes.
 
 
+WHY?
+
+Although I have my productions websites hosted at HostGator I wanted to be able to point development versions to my own server hosted at home with a dynamic IP address. i.e. http://www.myapplication.com is hosted remotely but http://dev.myapplication.com is hosted on my own machine. After a little searching I found the WHM JSON API and had to have some fun with it!
+
+
 CONFIGURE
 
 Edit whmDynDns.php and configure the following options:
