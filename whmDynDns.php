@@ -24,9 +24,6 @@ $Websites[] = "http://www.ipchicken.com";
 $Zones[] = array('name' => 'sub1', 'zone' => 'yourzone.com');
 $Zones[] = array('name' => 'sub2', 'zone' => 'yourzone.com');
 
-# Email address to send errors to (leave blank if you don't want emails)
-$Email = "you@yourwebsite.com";
-
 # Set your TimeZone
 date_default_timezone_set('America/New_York');
 
