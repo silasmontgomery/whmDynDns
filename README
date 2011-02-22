@@ -1,6 +1,8 @@
 OVERVIEW
 
-whmDynDns is a PHP script which takes advantage of the WHM JSON API in order to update DNS zone records for pointing subdomains to a server with a dynamic IP address. It can be run using CRON and based on your configuration will add/update A records when your public IP address changes.
+whmDynDns is a PHP script which takes advantage of the WHM JSON API in order to update DNS zone 
+records for pointing subdomains to a server with a dynamic IP address. It can be run using CRON and 
+based on your configuration will add/update A records when your public IP address changes.
 
 
 CONFIGURE
