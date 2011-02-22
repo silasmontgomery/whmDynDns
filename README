@@ -1,0 +1,38 @@
+OVERVIEW
+
+whmDynDns is a PHP script which takes advantage of the WHM JSON API in order to update DNS zone records for pointing subdomains to a server with a dynamic IP address. It can be run using CRON and based on your configuration will add/update A records when your public IP address changes.
+
+
+CONFIGURE
+
+Edit whmDynDns.php and configure the following options:
+
+# Set this to your WHM Admin login
+$username = "YourUsername";
+
+# Set this to your WHM Admin password
+$password = "YourPassword";
+
+# Set this to your WHM Login URL (2087 is the default WHM SSL port)
+$whmUrl = "https://yourwebsite.com:2087/";
+
+# Add one more more websites to scrape our IP from (one or more as array)
+$Websites[] = "http://www.yourwebsite.com/ip.php";
+$Websites[] = "http://www.ipchicken.com";
+
+# Add your host names here (one or more as array). 'name' is the subdomain and 'zone' is the domain
+$Zones[] = array('name' => 'dev', 'zone' => 'myzone.com');
+$Zones[] = array('name' => 'sub', 'zone' => 'yourzone.com');
+
+# Set your TimeZone
+date_default_timezone_set('America/New_York');
+
+
+SCHEDULE
+
+Setup whmDynDns.php to run at regular intervals using CRON (via 'crontab -e', etc.) and pipe to log!
+i.e. Every hour would look like:
+01     *     *     *     *     php /home/phpguy/cron/whmDynDns.php >> /var/log/whmDynDns.log
+
+
+EASY RIGHT? =)
