@@ -16,7 +16,7 @@ $password = "YourPassword";
 # Set this to your WHM Login URL (2087 is the default WHM SSL port)
 $whmUrl = "https://yourwebsite.com:2087/";
 
-# Add one more more websites to scrape our IP from (one or more as array)
+# Add one or more websites to scrape the public IP from (one or more as array)
 $Websites[] = "http://www.yourwebsite.com/ip.php";
 $Websites[] = "http://www.ipchicken.com";
 
