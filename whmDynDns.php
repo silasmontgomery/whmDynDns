@@ -68,7 +68,8 @@ function checkZone($zone) {
 	} else {
 		$results = json_decode($result, true);
 		foreach($results['result'][0]['record'] AS $onerecord) {
-			if($onerecord['name'] == $zone['name'].".".$zone['zone'].".") {
+			if($onerecord['name'] == $zone['name'].".".$zone['zone']."." &&
+			   $onerecord['type'] == "A") {
 				$lines[] = array('Line' => $onerecord['Line'], 'IP' => $onerecord['address']);
 			}
 		}
