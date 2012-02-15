@@ -2,8 +2,8 @@
 
 # WHM Dynamic DNS Update Script v1
 # By Silas Montgomery
-# Website: http://slimtechnologies.com
-# Email: silas@slimtechnologies.com)
+# Website: http://reticent.net
+# Email: nomsalis@reticent.net)
 
 # Configuration Options
 
@@ -52,7 +52,7 @@ function checkZone($zone) {
 	$CheckQuery = "json-api/dumpzone?domain=".$zone['zone'];
 
 	# Create Curl Object
-	$curl = curl_init();		
+	$curl = curl_init();
 	curl_setopt($curl, CURLOPT_SSL_VERIFYPEER,0);
 	curl_setopt($curl, CURLOPT_SSL_VERIFYHOST,0);
 	curl_setopt($curl, CURLOPT_HEADER,0);
