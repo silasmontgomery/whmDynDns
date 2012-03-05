@@ -5,30 +5,8 @@
 # Website: http://slimtechnologies.com
 # Email: silas@slimtechnologies.com)
 
-# Configuration Options
-
-# Set this to your WHM Admin login
-$username = "YourUsername";
-
-# Set this to your WHM Admin password
-$password = "YourPassword";
-
-# Set this to your WHM Login URL (2087 is the default WHM SSL port)
-$whmUrl = "https://yourwebsite.com:2087/";
-
-# Add one or more websites to scrape the public IP from (one or more as array)
-$Websites[] = "http://www.yourwebsite.com/ip.php";
-$Websites[] = "http://www.ipchicken.com";
-
-# Add your host names here (one or more as array).
-# 'name' is the subdomain
-# 'zone' is the domain
-# 'ttl' is the time to live of the record (if left empty, iit will be set as the DNS server default)
-$Zones[] = array('name' => 'sub1', 'zone' => 'yourzone.com');
-$Zones[] = array('name' => 'sub2', 'zone' => 'yourzone.com', 'ttl' => 300);
-
-# Set your TimeZone
-date_default_timezone_set('America/New_York');
+# Configuration
+require_once("whmDynDns.config.php");
 
 # Program Logic
 # Do not edit below this line unless you know what you're doing
@@ -48,27 +26,11 @@ foreach($Zones as $Zone) {
 
 # Script Functions
 function checkZone($zone) {
-
-	global $username, $password, $whmUrl;
-
 	# Setup this zone query
-	$CheckQuery = "json-api/dumpzone?domain=".$zone['zone'];
+	$query = "json-api/dumpzone?domain=".$zone['zone'];
+	$result = CurlRequest($query);
 
-	# Create Curl Object
-	$curl = curl_init();
-	curl_setopt($curl, CURLOPT_SSL_VERIFYPEER,0);
-	curl_setopt($curl, CURLOPT_SSL_VERIFYHOST,0);
-	curl_setopt($curl, CURLOPT_HEADER,0);
-	curl_setopt($curl, CURLOPT_RETURNTRANSFER,1);
-	$header[0] = "Authorization: Basic " . base64_encode($username.":".$password) . "\n\r";
-	curl_setopt($curl, CURLOPT_HTTPHEADER, $header);
-	curl_setopt($curl, CURLOPT_URL, $whmUrl.$CheckQuery);
-	$result = curl_exec($curl);
-	curl_close($curl);
-
-	if($result == false) {
-		doLog("Curl_Exec threw error \"".curl_error($curl)."\" for ".$whmUrl.$CheckQuery);
-	} else {
+	if($result != false) {
 		$results = json_decode($result, true);
 		foreach($results['result'][0]['record'] AS $onerecord) {
 			if($onerecord['name'] == $zone['name'].".".$zone['zone']."." &&
@@ -85,72 +47,42 @@ function checkZone($zone) {
 }
 
 function addZone($zone) {
-
-	global $username, $password, $whmUrl, $ip;
+	global $ip;
 
 	# Setup this zone query
-	$DnsQuery = "json-api/addzonerecord?zone=".$zone['zone']."&name=".$zone['name']."&address=".$ip."&type=A&class=IN".paramTTL($zone);
+	$query = "json-api/addzonerecord?zone=".$zone['zone']."&name=".$zone['name']."&address=".$ip."&type=A&class=IN".
+		(hasValidTTL($zone) ? "&ttl=".$zone['ttl'] : "");
+	$result = CurlRequest($query);
 
-	# Create Curl Object
-	$curl = curl_init();
-	curl_setopt($curl, CURLOPT_SSL_VERIFYPEER,0);
-	curl_setopt($curl, CURLOPT_SSL_VERIFYHOST,0);
-	curl_setopt($curl, CURLOPT_HEADER,0);
-	curl_setopt($curl, CURLOPT_RETURNTRANSFER,1);
-	$header[0] = "Authorization: Basic " . base64_encode($username.":".$password) . "\n\r";
-	curl_setopt($curl, CURLOPT_HTTPHEADER, $header);
-	curl_setopt($curl, CURLOPT_URL, $whmUrl.$DnsQuery);
-	$result = curl_exec($curl);
-	curl_close($curl);
-
-	if ($result == false) {
-		doLog("Curl_exec threw error \"" . curl_error($curl) . "\" for ".$whmUrl.$DnsQuery);
-	} else {
-		doLog("Added ".$zone['name'].".".$zone['zone']." pointing to ".$ip);
+	if ($result != false) {
+		doLog("Added ".$zone['name'].".".$zone['zone']." pointing to ".$ip.(hasValidTTL($zone) ? " (TTL: ".$zone['ttl'].")" : ""));
 	}
-
 }
 
 function updateZone($zone, $lines) {
-
-	global $username, $password, $whmUrl, $ip;
+	global $ip;
 
 	foreach($lines as $line) {
-		
 		# Is update required?
-		if($ip != $line['IP'] || $zone['ttl'] != $line['TTL']) {
+		if($ip != $line['IP'] || (isset($zone['ttl']) && $zone['ttl'] != $line['TTL'])) {
 		
 			# Setup this zone query
-			$UpdateQuery = "json-api/editzonerecord?domain=".$zone['zone']."&Line=".$line['Line']."&address=".$ip.paramTTL($zone);
+			$query = "json-api/editzonerecord?domain=".$zone['zone']."&Line=".$line['Line']."&address=".$ip.
+				(hasValidTTL($zone) ? "&ttl=".$zone['ttl'] : "");
+			$result = CurlRequest($query);
 
-			# Create Curl Object
-			$curl = curl_init();
-			curl_setopt($curl, CURLOPT_SSL_VERIFYPEER,0);
-			curl_setopt($curl, CURLOPT_SSL_VERIFYHOST,0);
-			curl_setopt($curl, CURLOPT_HEADER,0);
-			curl_setopt($curl, CURLOPT_RETURNTRANSFER,1);
-			$header[0] = "Authorization: Basic " . base64_encode($username.":".$password) . "\n\r";
-			curl_setopt($curl, CURLOPT_HTTPHEADER, $header);
-			curl_setopt($curl, CURLOPT_URL, $whmUrl.$UpdateQuery);
-			$result = curl_exec($curl);
-			curl_close($curl);
-
-			if($result == false) {
-				doLog("Curl_Exec threw error \"".curl_error($curl)."\" for ".$whmUrl.$UpdateQuery);
-			} else {
-				doLog("Updated ".$zone['name'].".".$zone['zone']." pointing to ".$ip);
+			if($result != false) {
+				doLog("Updated ".$zone['name'].".".$zone['zone']." pointing to ".$ip.(hasValidTTL($zone) ? " (TTL: ".$zone['ttl'].")" : ""));
 			}
 		
 		} else {
-				doLog("Skipped ".$zone['name'].".".$zone['zone']." as it's already pointing to ".$ip);
+			doLog("Skipped ".$zone['name'].".".$zone['zone']." as it's already pointing to ".$ip." (TTL: ".$line['TTL'].")");
 		}
 		
 	}
-
 }
 
 function scrapeIP($urls) {
-
 	$pattern = "/^(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)$/";
 	
 	if(is_array($urls)) {
@@ -167,19 +99,39 @@ function scrapeIP($urls) {
 		}
 	}
 	return NULL;
-
 }
 
-// Returns a querystring param (&ttl=number)
-function paramTTL($zone) {
+function CurlRequest($query) {
+	global $username, $password, $whmUrl;
+	
+	# Create Curl Object
+	$curl = curl_init();
+	curl_setopt($curl, CURLOPT_SSL_VERIFYPEER,0);
+	curl_setopt($curl, CURLOPT_SSL_VERIFYHOST,0);
+	curl_setopt($curl, CURLOPT_HEADER,0);
+	curl_setopt($curl, CURLOPT_RETURNTRANSFER,1);
+	$header[0] = "Authorization: Basic " . base64_encode($username.":".$password) . "\n\r";
+	curl_setopt($curl, CURLOPT_HTTPHEADER, $header);
+	curl_setopt($curl, CURLOPT_URL, $whmUrl.$query);
+	$result = curl_exec($curl);
+	curl_close($curl);
+	
+	if($result == false) {
+		doLog("Curl_Exec threw error \"".curl_error($curl)."\" for ".$whmUrl.$query);
+	}
+	
+	return $result;
+}
+
+function hasValidTTL($zone) {
+	$maxTTL = 2147483647; // According to RFC2181 http://www.rfc-editor.org/rfc/rfc2181.txt
 	if(isset($zone['ttl'])) {
 		$ttl = $zone['ttl'];
-		$maxTTL = 2147483647; // According to RFC2181 http://www.rfc-editor.org/rfc/rfc2181.txt
 		if(is_numeric($ttl) && $ttl > 0 && $ttl <= $maxTTL) {
-			return "&ttl".$ttl;
+			return true;
 		}
 	}
-	return "";
+	return false;
 }
 
 function doLog($msg) {
