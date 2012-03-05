@@ -33,9 +33,12 @@ Edit whmDynDns.php and configure the following options:
 # $Websites[] = "http://www.yourwebsite.com/ip.php";
 # $Websites[] = "http://www.ipchicken.com";
 
-# Add your host names here (one or more as array). 'name' is the subdomain and 'zone' is the domain
+# Add your host names here (one or more as array).
+# 'name' is the subdomain
+# 'zone' is the domain
+# 'ttl' is the time to live of the record (if left empty, iit will be set as the DNS server default)
 # $Zones[] = array('name' => 'dev', 'zone' => 'myzone.com');
-# $Zones[] = array('name' => 'sub', 'zone' => 'yourzone.com');
+# $Zones[] = array('name' => 'sub', 'zone' => 'yourzone.com', 'ttl' => 300);
 
 # Set your TimeZone
 # date_default_timezone_set('America/New_York');

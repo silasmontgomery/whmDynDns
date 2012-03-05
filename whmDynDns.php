@@ -1,6 +1,6 @@
 <?php
 
-# WHM Dynamic DNS Update Script v1
+# WHM Dynamic DNS Update Script v2
 # By Silas Montgomery
 # Website: http://slimtechnologies.com
 # Email: silas@slimtechnologies.com)
@@ -34,7 +34,7 @@ date_default_timezone_set('America/New_York');
 # Do not edit below this line unless you know what you're doing
 
 if(!$ip=scrapeIP($Websites)) {
-	doLog("Problem scraping IP.. ending script.");
+	doLog("Problem scraping IP.. ending script");
 	exit;
 }
 
@@ -50,12 +50,12 @@ foreach($Zones as $Zone) {
 function checkZone($zone) {
 
 	global $username, $password, $whmUrl;
-	
+
 	# Setup this zone query
 	$CheckQuery = "json-api/dumpzone?domain=".$zone['zone'];
 
 	# Create Curl Object
-	$curl = curl_init();		
+	$curl = curl_init();
 	curl_setopt($curl, CURLOPT_SSL_VERIFYPEER,0);
 	curl_setopt($curl, CURLOPT_SSL_VERIFYHOST,0);
 	curl_setopt($curl, CURLOPT_HEADER,0);
@@ -72,8 +72,8 @@ function checkZone($zone) {
 		$results = json_decode($result, true);
 		foreach($results['result'][0]['record'] AS $onerecord) {
 			if($onerecord['name'] == $zone['name'].".".$zone['zone']."." &&
-			   $onerecord['type'] == "A") {
-				$lines[] = array('Line' => $onerecord['Line'], 'IP' => $onerecord['address']);
+				$onerecord['type'] == "A") {
+				$lines[] = array('Line' => $onerecord['Line'], 'IP' => $onerecord['address'], 'TTL' => $onerecord['ttl']);
 			}
 		}
 		if(isset($lines)) {
@@ -89,7 +89,7 @@ function addZone($zone) {
 	global $username, $password, $whmUrl, $ip;
 
 	# Setup this zone query
-	$DnsQuery = "json-api/addzonerecord?zone=".$zone['zone']."&name=".$zone['name']."&address=".$ip."&type=A&class=IN".paramTTL($zone['ttl']);
+	$DnsQuery = "json-api/addzonerecord?zone=".$zone['zone']."&name=".$zone['name']."&address=".$ip."&type=A&class=IN".paramTTL($zone);
 
 	# Create Curl Object
 	$curl = curl_init();
@@ -106,25 +106,25 @@ function addZone($zone) {
 	if ($result == false) {
 		doLog("Curl_exec threw error \"" . curl_error($curl) . "\" for ".$whmUrl.$DnsQuery);
 	} else {
-		doLog("Added ".$zone['name'].".".$zone['zone']." pointing to ".$ip."\n");
+		doLog("Added ".$zone['name'].".".$zone['zone']." pointing to ".$ip);
 	}
 
 }
 
 function updateZone($zone, $lines) {
-	
+
 	global $username, $password, $whmUrl, $ip;
-	
+
 	foreach($lines as $line) {
 		
 		# Is update required?
-		if($ip != $line['IP']) {
+		if($ip != $line['IP'] || $zone['ttl'] != $line['TTL']) {
 		
 			# Setup this zone query
-			$UpdateQuery = "json-api/editzonerecord?domain=".$zone['zone']."&Line=".$line['Line']."&address=".$ip.paramTTL($zone['ttl']);
-	
+			$UpdateQuery = "json-api/editzonerecord?domain=".$zone['zone']."&Line=".$line['Line']."&address=".$ip.paramTTL($zone);
+
 			# Create Curl Object
-			$curl = curl_init();		
+			$curl = curl_init();
 			curl_setopt($curl, CURLOPT_SSL_VERIFYPEER,0);
 			curl_setopt($curl, CURLOPT_SSL_VERIFYHOST,0);
 			curl_setopt($curl, CURLOPT_HEADER,0);
@@ -138,19 +138,19 @@ function updateZone($zone, $lines) {
 			if($result == false) {
 				doLog("Curl_Exec threw error \"".curl_error($curl)."\" for ".$whmUrl.$UpdateQuery);
 			} else {
-				doLog("Updated ".$zone['name'].".".$zone['zone']." pointing to ".$ip."\n");
+				doLog("Updated ".$zone['name'].".".$zone['zone']." pointing to ".$ip);
 			}
 		
 		} else {
-				doLog("Skipped ".$zone['name'].".".$zone['zone']." as it's already pointing to ".$ip."\n");
+				doLog("Skipped ".$zone['name'].".".$zone['zone']." as it's already pointing to ".$ip);
 		}
 		
 	}
-	
+
 }
 
 function scrapeIP($urls) {
-	
+
 	$pattern = "/^(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)$/";
 	
 	if(is_array($urls)) {
@@ -167,18 +167,22 @@ function scrapeIP($urls) {
 		}
 	}
 	return NULL;
-	
+
 }
 
 // Returns a querystring param (&ttl=number)
-function paramTTL($ttl) {
-	$maxTTL = 2147483647; // According to RFC2181 http://www.rfc-editor.org/rfc/rfc2181.txt
-	if(is_numeric($ttl) && $ttl > 0 && $ttl <= $maxTTL) {
-		return "&ttl".$ttl;
+function paramTTL($zone) {
+	if(isset($zone['ttl'])) {
+		$ttl = $zone['ttl'];
+		$maxTTL = 2147483647; // According to RFC2181 http://www.rfc-editor.org/rfc/rfc2181.txt
+		if(is_numeric($ttl) && $ttl > 0 && $ttl <= $maxTTL) {
+			return "&ttl".$ttl;
+		}
 	}
+	return "";
 }
 
 function doLog($msg) {
-	echo date("m/d/Y g:iA")." - ".$msg;
+	echo date("m/d/Y g:iA")." - ".$msg."\n";
 }
 ?>
