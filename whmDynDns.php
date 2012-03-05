@@ -20,9 +20,12 @@ $whmUrl = "https://yourwebsite.com:2087/";
 $Websites[] = "http://www.yourwebsite.com/ip.php";
 $Websites[] = "http://www.ipchicken.com";
 
-# Add your host names here (one or more as array). 'name' is the subdomain and 'zone' is the domain
+# Add your host names here (one or more as array).
+# 'name' is the subdomain
+# 'zone' is the domain
+# 'ttl' is the time to live of the record (if left empty, iit will be set as the DNS server default)
 $Zones[] = array('name' => 'sub1', 'zone' => 'yourzone.com');
-$Zones[] = array('name' => 'sub2', 'zone' => 'yourzone.com');
+$Zones[] = array('name' => 'sub2', 'zone' => 'yourzone.com', 'ttl' => 300);
 
 # Set your TimeZone
 date_default_timezone_set('America/New_York');
@@ -86,7 +89,7 @@ function addZone($zone) {
 	global $username, $password, $whmUrl, $ip;
 
 	# Setup this zone query
-	$DnsQuery = "json-api/addzonerecord?zone=".$zone['zone']."&name=".$zone['name']."&address=".$ip."&type=A&class=IN";
+	$DnsQuery = "json-api/addzonerecord?zone=".$zone['zone']."&name=".$zone['name']."&address=".$ip."&type=A&class=IN".paramTTL($zone['ttl']);
 
 	# Create Curl Object
 	$curl = curl_init();
@@ -118,7 +121,7 @@ function updateZone($zone, $lines) {
 		if($ip != $line['IP']) {
 		
 			# Setup this zone query
-			$UpdateQuery = "json-api/editzonerecord?domain=".$zone['zone']."&Line=".$line['Line']."&address=".$ip;
+			$UpdateQuery = "json-api/editzonerecord?domain=".$zone['zone']."&Line=".$line['Line']."&address=".$ip.paramTTL($zone['ttl']);
 	
 			# Create Curl Object
 			$curl = curl_init();		
@@ -165,6 +168,14 @@ function scrapeIP($urls) {
 	}
 	return NULL;
 	
+}
+
+// Returns a querystring param (&ttl=number)
+function paramTTL($ttl) {
+	$maxTTL = 2147483647; // According to RFC2181 http://www.rfc-editor.org/rfc/rfc2181.txt
+	if(is_numeric($ttl) && $ttl > 0 && $ttl <= $maxTTL) {
+		return "&ttl".$ttl;
+	}
 }
 
 function doLog($msg) {
