@@ -33,8 +33,7 @@ function checkZone($zone) {
 	if($result != false) {
 		$results = json_decode($result, true);
 		foreach($results['result'][0]['record'] AS $onerecord) {
-			if($onerecord['name'] == $zone['name'].".".$zone['zone']."." &&
-				$onerecord['type'] == "A") {
+			if($onerecord['name'] == fullRecordName($zone)."." && $onerecord['type'] == "A") {
 				$lines[] = array('Line' => $onerecord['Line'], 'IP' => $onerecord['address'], 'TTL' => $onerecord['ttl']);
 			}
 		}
@@ -50,12 +49,12 @@ function addZone($zone) {
 	global $ip;
 
 	# Setup this zone query
-	$query = "json-api/addzonerecord?zone=".$zone['zone']."&name=".$zone['name']."&address=".$ip."&type=A&class=IN".
-		(hasValidTTL($zone) ? "&ttl=".$zone['ttl'] : "");
+	$query = "json-api/addzonerecord?zone=".$zone['zone']."&name=".(strlen($zone['name']) > 0 ? $zone['name'] : $zone['zone'].".")
+		."&address=".$ip."&type=A&class=IN".(hasValidTTL($zone) ? "&ttl=".$zone['ttl'] : "");
 	$result = CurlRequest($query);
 
 	if ($result != false) {
-		doLog("Added ".$zone['name'].".".$zone['zone']." pointing to ".$ip.(hasValidTTL($zone) ? " (TTL: ".$zone['ttl'].")" : ""));
+		doLog("Added ".fullRecordName($zone)." pointing to ".$ip.(hasValidTTL($zone) ? " (TTL: ".$zone['ttl'].")" : ""));
 	}
 }
 
@@ -72,11 +71,11 @@ function updateZone($zone, $lines) {
 			$result = CurlRequest($query);
 
 			if($result != false) {
-				doLog("Updated ".$zone['name'].".".$zone['zone']." pointing to ".$ip.(hasValidTTL($zone) ? " (TTL: ".$zone['ttl'].")" : ""));
+				doLog("Updated ".fullRecordName($zone)." pointing to ".$ip.(hasValidTTL($zone) ? " (TTL: ".$zone['ttl'].")" : ""));
 			}
 		
 		} else {
-			doLog("Skipped ".$zone['name'].".".$zone['zone']." as it's already pointing to ".$ip." (TTL: ".$line['TTL'].")");
+			doLog("Skipped ".fullRecordName($zone)." as it's already pointing to ".$ip." (TTL: ".$line['TTL'].")");
 		}
 		
 	}
@@ -132,6 +131,10 @@ function hasValidTTL($zone) {
 		}
 	}
 	return false;
+}
+
+function fullRecordName($zone) {
+	return (isset($zone['name']) && strlen($zone['name']) > 0 ? $zone['name']."." : "").$zone['zone'];
 }
 
 function doLog($msg) {

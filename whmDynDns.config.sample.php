@@ -21,11 +21,12 @@ $Websites[] = "http://www.yourwebsite.com/ip.php";
 $Websites[] = "http://www.ipchicken.com";
 
 # Add your host names here (one or more as array).
-# 'name' is the subdomain
+# 'name' is the subdomain, if left empty, it will add/update a record for the root domain itself (ex, yourdomain.com.)
 # 'zone' is the domain
-# 'ttl' is the time to live of the record (if left empty, iit will be set as the DNS server default)
+# 'ttl' is the time to live of the record, if left empty, iit will be set as the DNS server default
 $Zones[] = array('name' => 'sub1', 'zone' => 'yourzone.com');
 $Zones[] = array('name' => 'sub2', 'zone' => 'yourzone.com', 'ttl' => 300);
+$Zones[] = array('name' => '', 'zone' => 'yourzone.com');
 
 # Set your TimeZone
 date_default_timezone_set('America/New_York');
