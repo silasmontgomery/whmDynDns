@@ -7,9 +7,9 @@ based on your configuration will add/update A records when your public IP addres
 
 Why was it created?
 
-Although I have my productions websites hosted remotely I wanted to be able to point development 
+Although I have my production websites hosted remotely I wanted to be able to point development 
 versions to my own server hosted at home with a dynamic IP address. i.e. http://www.myapplication.com 
-is hosted remotely but http://dev.myapplication.com is hosted locall on my own machine. After a little searching 
+is hosted remotely but http://dev.myapplication.com is hosted locally on my own machine. After a little searching 
 I found the WHM JSON API and had to have some fun with it!
 
 
@@ -17,32 +17,32 @@ How to use whmDynDns?
 
 Edit whmDynDns.php and configure the following options:
 
-# Set this to your WHM Admin login
-# $username = "YourUsername";
+Set this to your WHM Admin login
+$username = "YourUsername";
 
-# Set this to your WHM Admin password
-# $password = "YourPassword";
+Set this to your WHM Admin password
+$password = "YourPassword";
 
-# Set this to your WHM Login URL (2087 is the default WHM SSL port)
-# $whmUrl = "https://yourwebsite.com:2087/";
+Set this to your WHM Login URL (2087 is the default WHM SSL port)
+$whmUrl = "https://yourwebsite.com:2087/";
 
-# Add one more more websites to scrape our IP from (one or more as array)
-# Included in the "server" folder is very simple PHP script you can upload
-# to a external server to get your remote IP.
-#
-# $Websites[] = "http://www.yourwebsite.com/ip.php";
-# $Websites[] = "http://www.ipchicken.com";
+Add one more more websites to scrape our IP from (one or more as array)
+Included in the "server" folder is very simple PHP script you can upload
+to a external server to get your remote IP.
 
-# Add your host names here (one or more as array).
-# 'name' is the subdomain, if left empty, it will add/update a record for the root domain itself (ex, yourdomain.com.)
-# 'zone' is the domain
-# 'ttl' is the time to live of the record, if left empty, iit will be set as the DNS server default
-# $Zones[] = array('name' => 'sub1', 'zone' => 'yourzone.com');
-# $Zones[] = array('name' => 'sub2', 'zone' => 'yourzone.com', 'ttl' => 300);
-# $Zones[] = array('name' => '', 'zone' => 'yourzone.com');
+$websites[] = "http://www.yourwebsite.com/ip.php";
+$websites[] = "http://www.ipchicken.com";
 
-# Set your TimeZone
-# date_default_timezone_set('America/New_York');
+Add your host names here (one or more as array).
+'name' is the subdomain, if left empty, it will add/update a record for the root domain itself (ex, yourdomain.com.)
+'zone' is the domain
+'ttl' is the time to live of the record, if left empty, iit will be set as the DNS server default
+$zones[] = array('name' => 'sub1', 'zone' => 'yourzone.com');
+$zones[] = array('name' => 'sub2', 'zone' => 'yourzone.com', 'ttl' => 300);
+$zones[] = array('name' => '', 'zone' => 'yourzone.com');
+
+Set your TimeZone
+date_default_timezone_set('America/New_York');
 
 
 Schedule with CRON
