@@ -29,7 +29,7 @@ Add your host names here (one or more as array).
 'ttl' is the time to live of the record, if left empty, iit will be set as the DNS server default
 */
 $zones[] = array('name' => 'sub1', 'zone' => 'yourdomain.com');
-$zones[] = array('name' => 'nomsalis', 'zone' => 'yourdomain.com', 'ttl' => 900);
+$zones[] = array('name' => 'sub2', 'zone' => 'yourdomain.com', 'ttl' => 900);
 $zones[] = array('name' => '', 'zone' => 'yourdomain.com');
 
 // Set your TimeZone
