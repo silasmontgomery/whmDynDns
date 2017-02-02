@@ -34,7 +34,11 @@ class Scraper
             $matches = array();
 			foreach($this->urls as $oneurl)
 			{
-				preg_match($pattern, file_get_contents($oneurl), $matches);
+				$curl = curl_init($oneurl);
+				curl_setopt($curl, CURLOPT_RETURNTRANSFER, TRUE);
+				$output = curl_exec($curl);
+				curl_close($curl);
+				preg_match($pattern, $output, $matches);
 				if(count($matches) > 0)
 				{
 					return $matches[0];

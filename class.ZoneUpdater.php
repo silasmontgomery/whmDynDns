@@ -68,20 +68,27 @@ class ZoneUpdater
 	{
 		foreach($this->zones as $zone)
 		{
-			$lines = $this->CheckZone($zone);
-			if($lines)
-			{
-				$this->UpdateZone($zone, $lines);
-			}
-			else
-			{
-				$this->AddZone($zone);
+			$host_ip = gethostbyname($this->FullRecordName($zone));
+			if($host_ip != $this->ip) {
+				$lines = $this->CheckZone($zone);
+			
+				if(!empty($lines))
+				{
+					$this->UpdateZone($zone, $lines);
+				}
+				else
+				{
+					$this->AddZone($zone);
+				}
+			} else {
+				Logger::Write("Skipped ".$this->FullRecordName($zone)." as it's already pointing to ".$this->ip);
 			}
 		}
 	}
 
 	private function CheckZone($zone)
-    {    
+    {
+		$lines = array();    
 		$query = "json-api/dumpzone?domain=".$zone['zone'];
 		$result = $this->CurlRequest($query);
 		
@@ -89,20 +96,14 @@ class ZoneUpdater
         {
 			foreach($result['record'] AS $oneRecord)
             {
-				if($oneRecord['name'] == $this->FullRecordName($zone)."." && $oneRecord['type'] == "A")
+				if(isset($oneRecord['name']) && ($oneRecord['name'] == $this->FullRecordName($zone)."." && $oneRecord['type'] == "A"))
                 {
 					$lines[] = array('Line' => $oneRecord['Line'], 'IP' => $oneRecord['address'], 'TTL' => $oneRecord['ttl']);
 				}
 			}
-			if(isset($lines))
-            {
-				return $lines;
-			}
-            else
-            {
-				return false;
-			}
 		}
+
+		return $lines;
 	}
 
 	private function AddZone($zone)

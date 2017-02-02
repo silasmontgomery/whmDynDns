@@ -15,31 +15,31 @@ I found the WHM JSON API and had to have some fun with it!
 
 How to use whmDynDns?
 
-Edit whmDynDns.php and configure the following options:
+Copy the whmDynDns.config.sample.php to whmDynDns.config.php and configure the following options:
 
 Set this to your WHM Admin login
-$username = "YourUsername";
+$username = 'YourUsername';
 
 Set this to your WHM Admin password
-$password = "YourPassword";
+$password = 'YourPassword';
 
 Set this to your WHM Login URL (2087 is the default WHM SSL port)
-$whmUrl = "https://yourwebsite.com:2087/";
+$whmUrl = 'https://yourwhmwebsite.com:2087/';
 
 Add one more more websites to scrape our IP from (one or more as array)
 Included in the "server" folder is very simple PHP script you can upload
 to a external server to get your remote IP.
 
-$websites[] = "http://www.yourwebsite.com/ip.php";
-$websites[] = "http://www.ipchicken.com";
+$websites[] = 'http://www.differentwebsite.com/ip.php';
+$websites[] = 'http://www.ipchicken.com';
 
 Add your host names here (one or more as array).
 'name' is the subdomain, if left empty, it will add/update a record for the root domain itself (ex, yourdomain.com.)
 'zone' is the domain
 'ttl' is the time to live of the record, if left empty, iit will be set as the DNS server default
-$zones[] = array('name' => 'sub1', 'zone' => 'yourzone.com');
-$zones[] = array('name' => 'sub2', 'zone' => 'yourzone.com', 'ttl' => 300);
-$zones[] = array('name' => '', 'zone' => 'yourzone.com');
+$zones[] = array('name' => 'sub1', 'zone' => 'yourdomain.com');
+$zones[] = array('name' => 'sub2', 'zone' => 'yourdomain.com', 'ttl' => 900);
+$zones[] = array('name' => '', 'zone' => 'yourdomain.com');
 
 Set your TimeZone
 date_default_timezone_set('America/New_York');
@@ -49,6 +49,6 @@ Schedule with CRON
 
 Setup whmDynDns.php to run at regular intervals using CRON (via 'crontab -e', etc.) and pipe to log!
 
-i.e. Every hour would look like:
+i.e. Every fifteen minutes would look like:
 
-01     *     *     *     *     php /home/phpguy/cron/whmDynDns.php >> /var/log/whmDynDns.log
+*/15     *     *     *     *     php /home/phpguy/cron/whmDynDns.php >> /var/log/whmDynDns.log
