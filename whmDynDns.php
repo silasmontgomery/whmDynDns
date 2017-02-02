@@ -1,6 +1,6 @@
 <?php
 /*
-WHM Dynamic DNS Updater v2.1.0
+WHM Dynamic DNS Updater v2.2.0
 By Silas Montgomery
 Website: http://reticent.net
 Email: nomsalis@reticent.net)
