@@ -1,21 +1,27 @@
 What is whmDynDns?
 
-whmDynDns is a PHP script which takes advantage of the WHM JSON API in order to update DNS zone 
-records for pointing subdomains to a server with a dynamic IP address. It can be run using CRON and 
+whmDynDns is a PHP script which takes advantage of the WHM JSON API in order to update DNS zone
+records for pointing subdomains to a server with a dynamic IP address. It can be run using CRON and
 based on your configuration will add/update A records when your public IP address changes.
 
 
 Why was it created?
 
-Although I have my production websites hosted remotely I wanted to be able to point development 
-versions to my own server hosted at home with a dynamic IP address. i.e. http://www.myapplication.com 
-is hosted remotely but http://dev.myapplication.com is hosted locally on my own machine. After a little searching 
+Although I have my production websites hosted remotely I wanted to be able to point development
+versions to my own server hosted at home with a dynamic IP address. i.e. http://www.myapplication.com
+is hosted remotely but http://dev.myapplication.com is hosted locally on my own machine. After a little searching
 I found the WHM JSON API and had to have some fun with it!
 
 
 How to use whmDynDns?
 
 Copy the whmDynDns.config.sample.php to whmDynDns.config.php and configure the following options:
+
+// Set Log Level (0 = errors only, 1 = IP changes only, 2 = Everything)
+const LOG_LEVEL =  1;
+
+// Set your TimeZone
+date_default_timezone_set('America/New_York');
 
 Set this to your WHM Admin login
 $username = 'YourUsername';
@@ -41,8 +47,6 @@ $zones[] = array('name' => 'sub1', 'zone' => 'yourdomain.com');
 $zones[] = array('name' => 'sub2', 'zone' => 'yourdomain.com', 'ttl' => 900);
 $zones[] = array('name' => '', 'zone' => 'yourdomain.com');
 
-Set your TimeZone
-date_default_timezone_set('America/New_York');
 
 
 Schedule with CRON

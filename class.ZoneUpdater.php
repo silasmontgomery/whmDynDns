@@ -1,6 +1,6 @@
 <?php
 /*
-WHM Dynamic DNS Updater v2.2.0
+WHM Dynamic DNS Updater v2.3.0
 By Silas Montgomery
 Website: http://reticent.net
 Email: nomsalis@reticent.net)
@@ -71,7 +71,7 @@ class ZoneUpdater
 			$host_ip = gethostbyname($this->FullRecordName($zone));
 			if($host_ip != $this->ip) {
 				$lines = $this->CheckZone($zone);
-			
+
 				if(!empty($lines))
 				{
 					$this->UpdateZone($zone, $lines);
@@ -81,17 +81,17 @@ class ZoneUpdater
 					$this->AddZone($zone);
 				}
 			} else {
-				Logger::Write("Skipped ".$this->FullRecordName($zone)." as it's already pointing to ".$this->ip);
+				Logger::Write("Skipped ".$this->FullRecordName($zone)." as it's already pointing to ".$this->ip, LOG_LEVEL_INFO);
 			}
 		}
 	}
 
 	private function CheckZone($zone)
     {
-		$lines = array();    
+		$lines = array();
 		$query = "json-api/dumpzone?domain=".$zone['zone'];
 		$result = $this->CurlRequest($query);
-		
+
 		if($result)
         {
 			foreach($result['record'] AS $oneRecord)
@@ -113,10 +113,13 @@ class ZoneUpdater
 		$result = $this->CurlRequest($query);
 
         $updateResult = "Added ";
-        if($result['status'] != 1)
+		$logLevel = LOG_LEVEL_CHANGE;
+        if($result['status'] != 1) {
             $updateResult = "Problem updating";
+			$logLevel = LOG_LEVEL_ERROR;
+		}
 
-        Logger::Write($updateResult.$this->FullRecordName($zone)." pointing to ".$this->ip.($this->HasValidTTL($zone) ? " (TTL: ".$zone['ttl'].")" : ""));
+        Logger::Write($updateResult.$this->FullRecordName($zone)." pointing to ".$this->ip.($this->HasValidTTL($zone) ? " (TTL: ".$zone['ttl'].")" : ""), $logLevel);
 	}
 
 	private function UpdateZone($zone, $lines)
@@ -130,20 +133,23 @@ class ZoneUpdater
 				$result = $this->CurlRequest($query);
 
                 $updateResult = "Updated ";
-				if($result['status'] != 1)
+				$logLevel = LOG_LEVEL_CHANGE;
+				if($result['status'] != 1) {
                     $updateResult = "Problem updating";
-				
-                Logger::Write($updateResult.$this->FullRecordName($zone)." pointing to ".$this->ip.($this->HasValidTTL($zone) ? " (TTL: ".$zone['ttl'].")" : ""));
+					$logLevel = LOG_LEVEL_ERROR;
+				}
+
+                Logger::Write($updateResult.$this->FullRecordName($zone)." pointing to ".$this->ip.($this->HasValidTTL($zone) ? " (TTL: ".$zone['ttl'].")" : ""), $logLevel);
 			}
             else
             {
-				Logger::Write("Skipped ".$this->FullRecordName($zone)." as it's already pointing to ".$this->ip." (TTL: ".$line['TTL'].")");
-			}			
+				Logger::Write("Skipped ".$this->FullRecordName($zone)." as it's already pointing to ".$this->ip." (TTL: ".$line['TTL'].")", LOG_LEVEL_INFO);
+			}
 		}
 	}
 
 	private function CurlRequest($query)
-    {	
+    {
 		$curl = curl_init();
 		curl_setopt($curl, CURLOPT_SSL_VERIFYPEER,0);
 		curl_setopt($curl, CURLOPT_SSL_VERIFYHOST,0);
@@ -169,7 +175,7 @@ class ZoneUpdater
 	}
 
 	private function HasValidTTL($zone)
-    {	
+    {
 		$maxTTL = 2147483647; // According to RFC2181 http://www.rfc-editor.org/rfc/rfc2181.txt
 		if(isset($zone['ttl']))
         {
@@ -177,8 +183,8 @@ class ZoneUpdater
 			if(is_numeric($ttl) && $ttl > 0 && $ttl <= $maxTTL)
 				return true;
 		}
+
 		return false;
-		
 	}
 
 	private function FullRecordName($zone)

@@ -1,6 +1,6 @@
 <?php
 /*
-WHM Dynamic DNS Update Script v2.2.0
+WHM Dynamic DNS Update Script v2.3.0
 By Silas Montgomery
 Website: http://reticent.net
 Email: nomsalis@reticent.net)
@@ -8,8 +8,13 @@ Email: nomsalis@reticent.net)
 
 // Update this file with your own configuration and rename it to whmDynDns.config.php
 
-// Set this to your WHM Admin login
+// Set Log Level (0 = errors only, 1 = IP changes only, 2 = Everything)
+const LOG_LEVEL =  1;
 
+// Set your TimeZone
+date_default_timezone_set('America/New_York');
+
+// Set this to your WHM Admin login
 $username = 'YourUsername';
 
 // Set this to your WHM Admin password
@@ -31,7 +36,4 @@ Add your host names here (one or more as array).
 $zones[] = array('name' => 'sub1', 'zone' => 'yourdomain.com');
 $zones[] = array('name' => 'sub2', 'zone' => 'yourdomain.com', 'ttl' => 900);
 $zones[] = array('name' => '', 'zone' => 'yourdomain.com');
-
-// Set your TimeZone
-date_default_timezone_set('America/New_York');
 ?>

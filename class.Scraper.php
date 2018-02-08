@@ -1,6 +1,6 @@
 <?php
 /*
-WHM Dynamic DNS Updater v2.2.0
+WHM Dynamic DNS Updater v2.3.0
 By Silas Montgomery
 Website: http://reticent.net
 Email: nomsalis@reticent.net)
@@ -29,7 +29,7 @@ class Scraper
 	{
 		$pattern = "/(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)/";
 
-		if(count($this->urls) > 0) 
+		if(count($this->urls) > 0)
 		{
             $matches = array();
 			foreach($this->urls as $oneurl)
@@ -44,12 +44,12 @@ class Scraper
 					return $matches[0];
 				}
 			}
-            Logger::Write("Failed to scape IP.");
+            Logger::Write("Failed to scrape IP.", LOG_LEVEL_ERROR);
             return false;
 		}
 		else
 		{
-			Logger::Write("Need at least one URL in order to scrape IP.");
+			Logger::Write("Need at least one URL in order to scrape IP.", LOG_LEVEL_ERROR);
 			return false;
 		}
 	}

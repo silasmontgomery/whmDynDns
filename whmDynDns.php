@@ -1,6 +1,6 @@
 <?php
 /*
-WHM Dynamic DNS Updater v2.2.0
+WHM Dynamic DNS Updater v2.3.0
 By Silas Montgomery
 Website: http://reticent.net
 Email: nomsalis@reticent.net)
@@ -13,6 +13,11 @@ require_once("class.Logger.php");
 
 // Configuration
 require_once("whmDynDns.config.php");
+
+// Log Levels
+const LOG_LEVEL_ERROR = 0;
+const LOG_LEVEL_CHANGE = 1;
+const LOG_LEVEL_INFO = 2;
 
 // Logic
 try
@@ -32,6 +37,6 @@ try
 }
 catch(exception $e)
 {
-	Logger::Write($e);
+	Logger::Write($e, LOG_LEVEL_ERROR);
 }
 ?>
