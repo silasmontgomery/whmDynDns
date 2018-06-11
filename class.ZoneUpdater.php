@@ -1,6 +1,6 @@
 <?php
 /*
-WHM Dynamic DNS Updater v2.3.0
+WHM Dynamic DNS Updater v2.3.1
 By Silas Montgomery
 Website: http://reticent.net
 Email: nomsalis@reticent.net)
@@ -89,12 +89,12 @@ class ZoneUpdater
 	private function CheckZone($zone)
     {
 		$lines = array();
-		$query = "json-api/dumpzone?domain=".$zone['zone'];
+		$query = "json-api/dumpzone?api.version=1&domain=".$zone['zone'];
 		$result = $this->CurlRequest($query);
 
-		if($result)
+		if($result['status'])
         {
-			foreach($result['record'] AS $oneRecord)
+			foreach($result['data']['zone'][0]['record'] AS $oneRecord)
             {
 				if(isset($oneRecord['name']) && ($oneRecord['name'] == $this->FullRecordName($zone)."." && $oneRecord['type'] == "A"))
                 {
@@ -102,24 +102,28 @@ class ZoneUpdater
 				}
 			}
 		}
+		else
+		{
+			Logger::Write("Problem checking " . $this->FullRecordName($zone) . " ({$result['statusmsg']})", LOG_LEVEL_ERROR);
+		}
 
 		return $lines;
 	}
 
 	private function AddZone($zone)
     {
-		$query = "json-api/addzonerecord?zone=".$zone['zone']."&name=".(strlen($zone['name']) > 0 ? $zone['name'] : $zone['zone'].".")
+		$query = "json-api/addzonerecord?api.version=1&zone=".$zone['zone']."&name=".(strlen($zone['name']) > 0 ? $zone['name'] : $zone['zone'].".")
 			."&address=".$this->ip."&type=A&class=IN".($this->HasValidTTL($zone) ? "&ttl=".$zone['ttl'] : "");
 		$result = $this->CurlRequest($query);
 
         $updateResult = "Added ";
 		$logLevel = LOG_LEVEL_CHANGE;
         if($result['status'] != 1) {
-            $updateResult = "Problem updating";
+            $updateResult = "Problem adding ";
 			$logLevel = LOG_LEVEL_ERROR;
 		}
 
-        Logger::Write($updateResult.$this->FullRecordName($zone)." pointing to ".$this->ip.($this->HasValidTTL($zone) ? " (TTL: ".$zone['ttl'].")" : ""), $logLevel);
+        Logger::Write($updateResult . $this->FullRecordName($zone) . " pointing to ".$this->ip . ($this->HasValidTTL($zone) ? " (TTL: ".$zone['ttl'].")" : "") . " ({$result['statusmsg']})", $logLevel);
 	}
 
 	private function UpdateZone($zone, $lines)
@@ -128,18 +132,18 @@ class ZoneUpdater
         {
 			if($this->ip != $line['IP'] || (isset($zone['ttl']) && $zone['ttl'] != $line['TTL']))
             {
-				$query = "json-api/editzonerecord?domain=".$zone['zone']."&Line=".$line['Line']."&address=".$this->ip.
+				$query = "json-api/editzonerecord?api.version=1&domain=".$zone['zone']."&Line=".$line['Line']."&address=".$this->ip.
 					($this->HasValidTTL($zone) ? "&ttl=".$zone['ttl'] : "");
 				$result = $this->CurlRequest($query);
 
                 $updateResult = "Updated ";
 				$logLevel = LOG_LEVEL_CHANGE;
 				if($result['status'] != 1) {
-                    $updateResult = "Problem updating";
+                    $updateResult = "Problem updating ";
 					$logLevel = LOG_LEVEL_ERROR;
 				}
 
-                Logger::Write($updateResult.$this->FullRecordName($zone)." pointing to ".$this->ip.($this->HasValidTTL($zone) ? " (TTL: ".$zone['ttl'].")" : ""), $logLevel);
+                Logger::Write($updateResult.$this->FullRecordName($zone)." pointing to ".$this->ip.($this->HasValidTTL($zone) ? " (TTL: ".$zone['ttl'].")" : "") . " ({$result['statusmsg']})", $logLevel);
 			}
             else
             {
@@ -165,11 +169,23 @@ class ZoneUpdater
         {
             $results = array("status" => 0, "statusmsg" => curl_error($curl));
 		}
-        else
-        {
-            $response = json_decode($response, true);
-            $results = $response['result'][0];
-        }
+		else
+		{
+			$response = json_decode($response, true);
+
+			if(isset($response['metadata']))
+			{
+				$results = array("status" => $response['metadata']['result'], "statusmsg" => trim($response['metadata']['reason']), 'data' => isset($response['data']) ? $response['data'] : null);
+			}
+			elseif(isset($response['cpanelresult']) && isset($response['cpanelresult']['error']))
+			{
+				$results = array("status" => 0, "statusmsg" => $response['cpanelresult']['error']);
+			}
+			else
+			{
+				$results = array("status" => 0, "statusmsg" => "Unknown error");
+			}
+		}
 
 		return $results;
 	}
